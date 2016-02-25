@@ -1,20 +1,25 @@
 FROM phusion/baseimage:0.9.18
 
+# Install necessary packages
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update
-RUN apt-get install -y openjdk-7-jre-headless git subversion tomcat7 exuberant-ctags curl
+RUN apt-get update && apt-get install -y \
+    curl \
+    exuberant-ctags \
+    git \
+    openjdk-7-jre-headless \
+    subversion \
+    tomcat7 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# Install opengrok
 ENV opengrok_dist_url https://java.net/projects/opengrok/downloads/download/opengrok-0.12.1.tar.gz
-RUN mkdir /opengrok
-RUN curl -L ${opengrok_dist_url} | tar xvz -C /opengrok --strip-components=1
+RUN mkdir /opengrok && curl -s -L ${opengrok_dist_url} | tar xvz -C /opengrok --strip-components=1
 
+# Deploy opengrok
 ENV OPENGROK_INSTANCE_BASE /var/opengrok
-RUN mkdir -p ${OPENGROK_INSTANCE_BASE}/etc
-RUN mkdir -p ${OPENGROK_INSTANCE_BASE}/data
+RUN mkdir -p ${OPENGROK_INSTANCE_BASE}/{etc,data} && /opengrok/bin/OpenGrok deploy
 
-RUN /opengrok/bin/OpenGrok deploy
-
-RUN mkdir -p /etc/my_init.d
+# Add maintenance scripts
 ADD start_tomcat.sh /etc/my_init.d/start_tomcat.sh
 ADD opengrok-crontab /etc/cron.d/opengrok 
 ADD reindex.sh /opengrok/scripts/reindex.sh
