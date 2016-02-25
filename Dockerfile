@@ -22,5 +22,5 @@ ADD reindex.sh /opengrok/scripts/reindex.sh
 ENV OPENGROK_SOURCE_DIR /src
 
 # Use baseimage-docker's init system.
-CMD ["/sbin/my_init"]
+CMD env > /tmp/myEnv.sh && /sbin/my_init
 EXPOSE 8080
